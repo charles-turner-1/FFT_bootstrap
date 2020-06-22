@@ -87,75 +87,73 @@ if criteria > 1
     clear emergence_index
 end
 
+switch criteria
+
 % Following block: we require that we have a trend/TORAC within 5% of its
 % final (estimated) value.
-if criteria == 2
-    final_trend_val = trends(end);
-    frac_diff = (trends - repmat(final_trend_val, size(trends)))./final_trend_val;
-    frac_diff(abs(frac_diff) > 0.125) = NaN;
-    
-    non_sig_vals = find(isnan(frac_diff));
-    last_non_sig = non_sig_vals(end);
-    emergence_index = last_non_sig + 2;
-    
-    if emergence_index < emergence_index_min
-        emergence_index = emergence_index_min; % If it's stable before significant, take when significant, not when stable
-    end
-end
+	case 2
+		final_trend_val = trends(end);
+		frac_diff = (trends - repmat(final_trend_val, size(trends)))./final_trend_val;
+		frac_diff(abs(frac_diff) > 0.125) = NaN;
+		
+		non_sig_vals = find(isnan(frac_diff));
+		last_non_sig = non_sig_vals(end);
+		emergence_index = last_non_sig + 2;
+		
+		if emergence_index < emergence_index_min
+			emergence_index = emergence_index_min; % If it's stable before significant, take when significant, not when stable
+		end
 
-% Following block: we require that we have a trend/TORAC that is stable to
-% within 1% of its current value
+	% Following block: we require that we have a trend/TORAC that is stable to
+	% within 1% of its current value
+	case 3 
+		trend_grad = gradient(trends);
+		deriv_frac = trend_grad./trends;
+		deriv_frac(abs(deriv_frac)>0.01) = NaN;
+		
+		non_sig_vals = find(isnan(deriv_frac));
+		last_non_sig = non_sig_vals(end);
+		emergence_index = last_non_sig + 2;
+		
+		if emergence_index < emergence_index_min
+			emergence_index = emergence_index_min; % If it's stable before significant, take when significant, not when stable
+		end
 
-if criteria == 3
-    trend_grad = gradient(trends);
-    deriv_frac = trend_grad./trends;
-    deriv_frac(abs(deriv_frac)>0.01) = NaN;
-    
-    non_sig_vals = find(isnan(deriv_frac));
-    last_non_sig = non_sig_vals(end);
-    emergence_index = last_non_sig + 2;
-    
-    if emergence_index < emergence_index_min
-        emergence_index = emergence_index_min; % If it's stable before significant, take when significant, not when stable
-    end
-end
+	case 4
+		trend_grad = gradient(trends);
+		deriv_frac = trend_grad./trends;
+		deriv_frac(abs(deriv_frac)>0.01) = NaN;
 
-if criteria == 4
-    trend_grad = gradient(trends);
-    deriv_frac = trend_grad./trends;
-    deriv_frac(abs(deriv_frac)>0.01) = NaN;
+		final_trend_val = trends(end);
+		frac_diff = (trends - repmat(final_trend_val, size(trends)))./final_trend_val;
+		frac_diff(abs(frac_diff) > 0.125) = NaN;
 
-    final_trend_val = trends(end);
-    frac_diff = (trends - repmat(final_trend_val, size(trends)))./final_trend_val;
-    frac_diff(abs(frac_diff) > 0.125) = NaN;
+		non_sig_vals = find(isnan(deriv_frac) | isnan(frac_diff));
+		last_non_sig = non_sig_vals(end);
+		emergence_index = last_non_sig + 2;
+		
+		if emergence_index < emergence_index_min
+			emergence_index = emergence_index_min; % If it's stable before significant, take when significant, not when stable
+		end
 
-    non_sig_vals = find(isnan(deriv_frac) | isnan(frac_diff));
-    last_non_sig = non_sig_vals(end);
-    emergence_index = last_non_sig + 2;
-    
-    if emergence_index < emergence_index_min
-        emergence_index = emergence_index_min; % If it's stable before significant, take when significant, not when stable
-    end
-end
-
-if criteria == 5
-    grads = NaN(length(trends)-1,1);
-    for i = 3:length(grads) %Determine the drift of the trend. Trends only 
-        % exist from 2nd value, so start fitting at 3rd time step
-        p1 = polyfit([2:i]',trends(2:i),1);
-        grads(i) = p1(1);
-    end
-    drift = abs(grads/trends(end));
-    drift(drift > 0.1) = NaN;
-        
-    non_sig_vals = find(isnan(drift));
-    last_non_sig = non_sig_vals(end);
-    emergence_index = last_non_sig + 2;
-    
-    if emergence_index < emergence_index_min
-        emergence_index = emergence_index_min; % If it's stable before significant, take when significant, not when stable
-    end
-    
+	case 5
+		grads = NaN(length(trends)-1,1);
+		for i = 3:length(grads) %Determine the drift of the trend. Trends only 
+			% exist from 2nd value, so start fitting at 3rd time step
+			p1 = polyfit([2:i]',trends(2:i),1);
+			grads(i) = p1(1);
+		end
+		drift = abs(grads/trends(end));
+		drift(drift > 0.1) = NaN;
+			
+		non_sig_vals = find(isnan(drift));
+		last_non_sig = non_sig_vals(end);
+		emergence_index = last_non_sig + 2;
+		
+		if emergence_index < emergence_index_min
+			emergence_index = emergence_index_min; % If it's stable before significant, take when significant, not when stable
+		end
+		
 end
 
 
