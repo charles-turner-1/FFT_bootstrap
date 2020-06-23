@@ -1,5 +1,4 @@
 function [trends_and_CIs] = FFT_trend_CI(input_data,input_freq,data_source,output_freq)
-tic
 
 warning('off','MATLAB:polyfit:PolyNotUnique')
 
@@ -95,7 +94,6 @@ end
 
 trends_and_CIs.trends = trends;
 trends_and_CIs.one_sigma = confidence_intervals;
-toc
 end
 
 
